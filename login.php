@@ -51,7 +51,7 @@ if ($_POST && isset($_POST['luser'])) {
     elseif (($user = UserAuthenticationBackend::process($_POST['luser'],
             $_POST['lpasswd'], $errors))) {
         if ($user instanceof ClientCreateRequest) {
-            if ($cfg && $cfg->isClientRegistrationEnabled()) {
+            if ($cfg && ($cfg->isClientRegistrationEnabled() || $cfg->usingLDAP())) {
                 // Attempt to automatically register
                 if ($user->attemptAutoRegister())
                     Http::redirect('tickets.php');

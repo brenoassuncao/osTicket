@@ -13,7 +13,7 @@
 
     vim: expandtab sw=4 ts=4 sts=4:
 **********************************************************************/
-
+require_once(INCLUDE_DIR.'class.plugin.php');
 class Config {
     var $config = array();
 
@@ -577,8 +577,12 @@ class OsticketConfig extends Config {
     }
 
     function isClientRegistrationEnabled() {
-        return in_array($this->getClientRegistrationMode(),
-            array('public', 'auto'));
+        return (in_array($this->getClientRegistrationMode(),
+            array('public', 'auto')) && !$this->usingLDAP());
+    }
+
+    function usingLDAP(){
+      return in_array("LdapConfig",array_map(create_function('$o', 'return $o->config_class;'),PluginManager::allActive()));
     }
 
     function getClientRegistrationMode() {
