@@ -190,6 +190,10 @@ function url_get($regex, $func, $args=false) {
     return url($regex, $func, $args, "GET");
 }
 
+function url_put($regex, $func, $args=false) {
+    return url($regex, $func, $args, "PUT");
+}
+
 function url_delete($regex, $func, $args=false) {
     return url($regex, $func, $args, "DELETE");
 }
