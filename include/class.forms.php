@@ -1156,6 +1156,13 @@ class ThreadEntryField extends FormField {
         return false;
     }
 
+    function getConfiguration() {                                      
+        global $cfg;                                                   
+        $config = parent::getConfiguration();                          
+        $config['html'] = (bool) ($cfg && $cfg->isHtmlThreadEnabled());
+        return $config;                                                
+    }                                                                  
+
     function getConfigurationOptions() {
         global $cfg;
 
@@ -1519,7 +1526,8 @@ class FileUploadField extends FormField {
 
         if (!($id = AttachmentFile::upload($file)))
             Http::response(500, 'Unable to store file: '. $file['error']);
-
+        // This file is allowed for attachment in this session
+        $_SESSION[':uploadedFiles'][$id] = 1;
         return $id;
     }
 
@@ -1829,6 +1837,21 @@ class TextareaWidget extends Widget {
         </span>
         <?php
     }
+
+    function parseValue() {                                               
+        parent::parseValue();                                             
+        if (isset($this->value)) {                                        
+            $value = $this->value;                                        
+            $config = $this->field->getConfiguration();                   
+            // Trim spaces based on text input type.                      
+            // Preserve original input if not empty.                      
+            if ($config['html'])                                          
+                $this->value = trim($value, " <>br/\t\n\r") ? $value : '';
+            else                                                          
+                $this->value = trim($value) ? $value : '';                
+        }                                                                 
+    }                                                                     
+
 }
 
 class PhoneNumberWidget extends Widget {
@@ -2209,7 +2232,31 @@ class FileUploadWidget extends Widget {
         elseif ($data && is_array($data) && !isset($data[$this->name]))
             return array();
 
-        return parent::getValue();
+         // Files uploaded here MUST have been uploaded by this user and                          
+         // identified in the session                                                             
+         if ($files = parent::getValue()) {                                                       
+             $allowed = array();                                                                  
+             // Files already attached to the field are allowed                                   
+             foreach ($this->field->getFiles() as $F) {                                           
+                 // FIXME: This will need special porting in v1.10                                
+                 $allowed[$F['id']] = 1;                                                          
+             }                                                                                    
+             // New files uploaded in this session are allowed                                    
+             if (isset($_SESSION[':uploadedFiles'])) {                                            
+                 $allowed += $_SESSION[':uploadedFiles'];                                         
+             }                                                                                    
+                                                                                                  
+             // Canned attachments initiated by this session                                      
+             if (isset($_SESSION[':cannedFiles']))                                                
+                $allowed += $_SESSION[':cannedFiles'];                                            
+                                                                                                  
+             foreach ($files as $i=>$F) {                                                         
+                 if (!isset($allowed[$F])) {                                                      
+                     unset($files[$i]);                                                           
+                 }                                                                                
+             }                                                                                    
+         }                                                                                        
+         return $files;                                                                           
     }
 }
 
