@@ -271,45 +271,45 @@ class TicketApiController extends ApiController {
     function restGetTickets() {
         if(!($key=$this->requireApiKey()))
             return $this->exerr(401, __('API key not authorized'));
-        header('Accept-Ranges: items');
+        // header('Accept-Ranges: items');
         # Parse and check range header
-        $range = 'items=0-';
-        foreach (getallheaders() as $k => $v) {
-            if (strcasecmp('range', $k) == 0) {
-                $range = $v;
-                break;
-            }
-        }
-        $range = explode('=',$range);
-        # check if range is expressed in items
-        if (strcasecmp($range[0], 'items') != 0)
-            return $this->exerr(416, __('Requested Range Not Satisfiable'));
-        # check if values are numeric
-        $range = explode('-', $range[1]);
-        foreach ($range as $v) {
-            if (strlen($v)>0 && !is_numeric($v))
-                return $this->exerr(416, __('Requested Range Not Satisfiable'));
-            }
-        # cast values to integer
-        $range_low = intval($range[0]);
-        if (strlen($range[1])>0) {
-            $range_high = intval($range[1]);
-            }
-        else
-            $range_high = -1; # empty range_high
-        if ($range_low < 0)
-            return $this->exerr(416, __('Requested Range Not Satisfiable'));
-        # determine range length and check
-        $range_len = $range_high - $range_low + 1;
-        if ($range_len < 1)
-            return $this->exerr(416, __('Requested Range Not Satisfiable'));
+        // $range = 'items=0-';
+        // foreach (getallheaders() as $k => $v) {
+        //     if (strcasecmp('range', $k) == 0) {
+        //         $range = $v;
+        //         break;
+        //     }
+        // }
+        // $range = explode('=',$range);
+        // # check if range is expressed in items
+        // if (strcasecmp($range[0], 'items') != 0)
+        //     return $this->exerr(416, __('Requested Range Not Satisfiable'));
+        // # check if values are numeric
+        // $range = explode('-', $range[1]);
+        // foreach ($range as $v) {
+        //     if (strlen($v)>0 && !is_numeric($v))
+        //         return $this->exerr(416, __('Requested Range Not Satisfiable'));
+        //     }
+        // # cast values to integer
+        // $range_low = intval($range[0]);
+        // if (strlen($range[1])>0) {
+        //     $range_high = intval($range[1]);
+        //     }
+        // else
+        //     $range_high = -1; # empty range_high
+        // if ($range_low < 0)
+        //     return $this->exerr(416, __('Requested Range Not Satisfiable'));
+        // # determine range length and check
+        // $range_len = $range_high - $range_low + 1;
+        // if ($range_len < 1)
+        //     return $this->exerr(416, __('Requested Range Not Satisfiable'));
         # limit query to 100 items
-        $range_len_max = 100;
-        header("X-Request-Range-Maximum-Length: ${range_len_max})");
-        if (($range_len > $range_len_max) || ($range_high < 0))
-            $range_len = $range_len_max;
-        $range_high_request = $range_low + $range_len - 1;
-        header("X-Request-Range: items=${range_low}-${range_high_request}");
+        // $range_len_max = 100;
+        // header("X-Request-Range-Maximum-Length: ${range_len_max})");
+        // if (($range_len > $range_len_max) || ($range_high < 0))
+        //     $range_len = $range_len_max;
+        // $range_high_request = $range_low + $range_len - 1;
+        // header("X-Request-Range: items=${range_low}-${range_high_request}");
         # Build query
         $qfields = array('number', 'created', 'updated', 'closed',
              'lastmessage', 'lastresponse');
@@ -320,8 +320,8 @@ class TicketApiController extends ApiController {
         $q=rtrim($q, ',');
         $qfrom = ' FROM '.TICKET_TABLE;
         $q .= $qfrom;
-        $qlimit = " LIMIT ${range_len} OFFSET ${range_low}";
-        $q .= $qlimit;
+        // $qlimit = " LIMIT ${range_len} OFFSET ${range_low}";
+        // $q .= $qlimit;
         $q2 = 'SELECT FOUND_ROWS()';
         $res = db_query($q);
         # get total number of tickets
@@ -329,6 +329,7 @@ class TicketApiController extends ApiController {
         $row = $res2->data_seek(0);
         $row = $res2->fetch_assoc();
         $found_rows = $row['FOUND_ROWS()'];
+        // echo "NUMBER OF ROWS FOUND: ". $found_rows;
         mysqli_free_result($res2);
         unset($row);
         $tickets = array();
@@ -343,10 +344,11 @@ class TicketApiController extends ApiController {
             array_push($ticket, array('href', '/api/tickets/'.$row['number']));
             array_push($tickets, $ticket);
         }
+        // var_dump($tickets);
         # Replace range_high with the actual number of rows
         # returned
-        $range_high = $range_low + $result_rows;
-        header("Content-Range: items ${range_low}-${range_high}/${found_rows}");
+        // $range_high = $range_low + $result_rows;
+        // header("Content-Range: items ${range_low}-${range_high}/${found_rows}");
         # Partial or full collection?
         if ($result_rows < $found_rows)
             $result_code = 200;
