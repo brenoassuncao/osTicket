@@ -110,6 +110,7 @@ class TicketApiController extends ApiController {
             # Parse request body
             $ticket = $this->createTicket($this->getRequest($format));
         }
+        // echo $this->getRequest($format);
 
         if(!$ticket)
             return $this->exerr(500, __("Unable to create new ticket: unknown error"));
@@ -118,6 +119,87 @@ class TicketApiController extends ApiController {
         header('Location: '.$location_base.$ticket->getNumber());
 
         $this->response(201, $ticket->getNumber());
+        // var_dump($format);
+        // var_dump($this->getRequest($format));
+        $this->response(200, "Executed the create function");
+    }
+
+    function update($ticket_number,$format) {
+        echo $ticket_number;
+        var_dump($format);
+        if(!($key=$this->requireApiKey()) || !$key->canCreateTickets())
+            return $this->exerr(401, __('API key not authorized'));
+
+        $ticket = null;
+
+        # Checks for valid ticket number
+        if (!is_numeric($ticket_number))
+            return $this->response(404, __("Invalid ticket number"));
+        # Checks for existing ticket with that number
+        $id = Ticket::getIdByNumber($ticket_number);
+        $orig_ticket = Ticket::lookup($id);
+        // if ($id <= 0)
+        //     return $this->response(404, __("Ticket not found"));
+        // # Load ticket and send response
+        // $orig_ticket = new Ticket(0);
+        // $orig_ticket->load($id);
+
+        if(!$orig_ticket)
+            return $this->exerr(404, __("Unable to update ticket: can't find ticket"));
+        if(!strcasecmp($format, 'email')) {
+            # Handle remote piped emails - could be a reply...etc.
+            // $ticket = $this->processEmail();
+        } else {
+            # Parse request body
+            $ticket = $this->updateTicket($orig_ticket, $this->getRequest($format));
+        }
+
+        if(!$ticket)
+            return $this->exerr(500, __("Unable to update ticket: unknown error"));
+
+        $location_base = '/api/tickets/';
+        header('Location: '.$location_base.$ticket->getNumber());
+
+        // $this->response(201, $ticket->getNumber());
+        $this->response(200, "Executed the update function" . $ticket->getNumber());
+    }
+
+    /* private helper functions */
+
+    function updateTicket($ticket, $data) {
+
+        # Pull off some meta-data
+        $alert       = (bool) (isset($data['alert'])       ? $data['alert']       : true);
+        $autorespond = (bool) (isset($data['autorespond']) ? $data['autorespond'] : true);
+
+        # Assign default value to source if not defined, or defined as NULL
+        $data['source'] = isset($data['source']) ? $data['source'] : 'API';
+
+        # Create the ticket with the data (attempt to anyway)
+        $errors = array();
+        echo "ORIGINAL: ";
+        var_dump($ticket);
+
+        $ticket->update($data, $errors);
+        if(isset($data['status'])){
+            $ticket->setStatus($data['status']);
+        }
+        
+        # Return errors (?)
+        if (count($errors)) {
+            if(isset($errors['errno']) && $errors['errno'] == 403)
+                return $this->exerr(403, __('Ticket denied'));
+            else
+                return $this->exerr(
+                        400,
+                        __("Unable to update ticket: validation errors").":\n"
+                        .Format::array_implode(": ", "\n", $errors)
+                        );
+        } elseif (!$ticket) {
+            return $this->exerr(500, __("Unable to update ticket: unknown error - Oh No!"));
+        }
+
+        return $ticket;
     }
 
     /* private helper functions */
@@ -269,6 +351,9 @@ class TicketApiController extends ApiController {
      * 
      */
     function restGetTickets() {
+        // echo "getting tickets" . "<BR>";
+        // echo $key . "<BR>";
+        // echo $this->requireApiKey() . "<BR>";
         if(!($key=$this->requireApiKey()))
             return $this->exerr(401, __('API key not authorized'));
         // header('Accept-Ranges: items');

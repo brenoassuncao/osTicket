@@ -171,7 +171,8 @@ class ApiController {
     function requireApiKey() {
         # Validate the API key -- required to be sent via the X-API-Key
         # header
-
+        // echo $key;
+        // echo $this->getApiKey();
         if(!($key=$this->getApiKey()))
             return $this->exerr(401, __('Valid API key required'));
         elseif (!$key->isActive() || $key->getIPAddr()!=$_SERVER['REMOTE_ADDR'])
@@ -231,13 +232,25 @@ class ApiController {
      */
     function getRequest($format) {
         global $ost;
-
+        echo $ost->is_cli();
+        // echo "HIHIHIHIHIHI";
+        // echo json_encode('php://stdin');
+        // echo json_encode('php://input');
         $input = $ost->is_cli()?'php://stdin':'php://input';
-
-        if (!($stream = @fopen($input, 'r')))
-            $this->exerr(400, __("Unable to read request body"));
+        // echo "INPUT".$input;
+        if($format=="form"){
+            if (!($stream = @file_get_contents($input)))
+                $this->exerr(400, __("Unable to read request body"));
+        }
+        else{
+            if (!($stream = @fopen($input, 'r')))
+                $this->exerr(400, __("Unable to read request body"));
+        }
+        
 
         $parser = null;
+        // echo $format;
+        // echo $stream;
         switch(strtolower($format)) {
             case 'xml':
                 if (!function_exists('xml_parser_create'))
@@ -251,16 +264,26 @@ class ApiController {
             case 'email':
                 $parser = new ApiEmailDataParser();
                 break;
+            case 'form':
+                // echo "matched form";
+                $parser = new ApiFormDataParser();
+                break;
             default:
                 $this->exerr(415, __('Unsupported data format'));
         }
-
+        // echo "HERE";
         if (!($data = $parser->parse($stream)))
             $this->exerr(400, $parser->lastError());
-
+        var_dump($data);
+        if($format=="form"){
+            // stdclass to array
+            $data = json_decode(json_encode($data), true);
+        }
         //Validate structure of the request.
         $this->validate($data, $format, false);
-
+        // echo "PASSED VALIDATION";
+        // var_dump($data);
+        // echo $data["firstName"];
         return $data;
     }
 
@@ -308,6 +331,7 @@ class ApiController {
      *
      */
     function validate(&$data, $format, $strict=true) {
+        var_dump($data);
         return $this->validateRequestStructure(
                 $data,
                 $this->getRequestStructure($format, $data),
@@ -411,6 +435,24 @@ class ApiXmlDataParser extends XmlDataParser {
         unset($value);
 
         return $current;
+    }
+}
+
+class ApiFormDataParser {
+
+    function parse($stream) {
+        parse_str($stream,$data);
+        return (object)$data;
+
+        // return unserialize(urldecode($stream));
+        // return urldecode($stream);
+        // return json_decode($stream,true);
+
+
+
+        // return json_decode(json_encode($stream), true);
+        // return json_decode(json_encode((object)$data), true);
+        // return json_decode($stream);
     }
 }
 

@@ -2211,6 +2211,8 @@ class Ticket {
     function update($vars, &$errors) {
 
         global $cfg, $thisstaff;
+        echo "UPDATE TICKET";
+        var_dump($vars);
 
         if(!$cfg || !$thisstaff || !$thisstaff->canEditTickets())
             return false;
