@@ -32,8 +32,8 @@ include_once(INCLUDE_DIR.'class.canned.php');
 require_once(INCLUDE_DIR.'class.dynamic_forms.php');
 require_once(INCLUDE_DIR.'class.user.php');
 require_once(INCLUDE_DIR.'class.collaborator.php');
-require_once(ROOT_DIR . 'vendor/autoload.php');
-use Trello\Client;
+// require_once(ROOT_DIR . 'vendor/autoload.php');
+// use Trello\Client;
 
 
 class Ticket {
@@ -2931,28 +2931,28 @@ class Ticket {
                     && ($user->getNumOpenTickets()==$cfg->getMaxOpenTickets())) {
             $ticket->onOpenLimit(($autorespond && strcasecmp($origin, 'staff')));
         }
-        try{
-            // TRELLO CHANGES ON TICKET CREATION
-            // If it is the web department ticket, send to Trello board
-            // for now let's just pretend there is an if block here checking that
-            $client = new Client();
-            // $config = file_get_contents(ROOT_DIR . "config.json");
-            // $config = json_decode($config, true);
+        // try{
+        //     // TRELLO CHANGES ON TICKET CREATION
+        //     // If it is the web department ticket, send to Trello board
+        //     // for now let's just pretend there is an if block here checking that
+        //     $client = new Client();
+        //     // $config = file_get_contents(ROOT_DIR . "config.json");
+        //     // $config = json_decode($config, true);
      
-            // // // Simple key and token
-            // // kladd6 Account
-            // $key = $config['key'];
-            // $token = $config['token'];
-            $key = "";
-            $token = "";
-            $client->authenticate($key, $token, Client::AUTH_URL_CLIENT_ID);
+        //     // // // Simple key and token
+        //     // // kladd6 Account
+        //     // $key = $config['key'];
+        //     // $token = $config['token'];
+        //     $key = "";
+        //     $token = "";
+        //     $client->authenticate($key, $token, Client::AUTH_URL_CLIENT_ID);
 
-            // $ticket->getLastMessage()->getBody();
-            // // POST to Trello
-            $newcard = array("idList"=> "578afe6f4be75dbb1bdd1536","name"=>$ticket->getNumber() . " - " . $ticket->getSubject() ,"desc"=>$ticket->getLastMessage()->getBody());
-            $client->cards()->create($newcard);
-        }
-        catch(Exception $e){}
+        //     // $ticket->getLastMessage()->getBody();
+        //     // // POST to Trello
+        //     $newcard = array("idList"=> "578afe6f4be75dbb1bdd1536","name"=>$ticket->getNumber() . " - " . $ticket->getSubject() ,"desc"=>$ticket->getLastMessage()->getBody());
+        //     $client->cards()->create($newcard);
+        // }
+        // catch(Exception $e){}
 
 
         /* Start tracking ticket lifecycle events */
