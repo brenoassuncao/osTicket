@@ -235,8 +235,14 @@ class ApiController {
 
         $input = osTicket::is_cli()?'php://stdin':'php://input';
 
-        if (!($stream = @fopen($input, 'r')))
-            $this->exerr(400, __("Unable to read request body"));
+        if($format=="form"){
+            if (!($stream = @file_get_contents($input)))
+                $this->exerr(400, __("Unable to read request body"));
+        }
+        else{
+            if (!($stream = @fopen($input, 'r')))
+                $this->exerr(400, __("Unable to read request body"));
+        }
 
         $parser = null;
         switch(strtolower($format)) {
@@ -251,6 +257,9 @@ class ApiController {
                 break;
             case 'email':
                 $parser = new ApiEmailDataParser();
+                break;
+            case 'form':
+                $parser = new ApiFormDataParser();
                 break;
             default:
                 $this->exerr(415, __('Unsupported data format'));
@@ -412,6 +421,14 @@ class ApiXmlDataParser extends XmlDataParser {
         unset($value);
 
         return $current;
+    }
+}
+
+class ApiFormDataParser {
+
+    function parse($stream) {
+        parse_str($stream,$data);
+        return (object)$data;
     }
 }
 

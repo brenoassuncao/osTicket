@@ -24,11 +24,16 @@ require_once INCLUDE_DIR."class.dispatcher.php";
 
 $dispatcher = patterns('',
     // legacy
-    url_post("^/tickets\.(?P<format>xml|json|email)$", array('api.tickets.php:TicketApiController','create')),
+    //tickets.json
+    url_post("^/tickets\.(?P<format>xml|json|email|form)$", array('api.tickets.php:TicketApiController','create')),
     // RESTful
+    // /tickets
     url_get("^/tickets$", array('api.tickets.php:TicketApiController','restGetTickets')),
+    // /tickets/123456
     url_get("^/tickets/(?P<ticket_number>\d{6})$",
         array('api.tickets.php:TicketApiController','restGetTicket')),
+    // tickets/123456/
+    url_post("^/tickets/(?P<ticket_number>\d{6})\.(?P<format>xml|json|email|form)$", array('api.tickets.php:TicketApiController','update')),
     # Should stay disabled until there's an api key permission for ticket deletion
     #url_delete("^/tickets/(?P<ticket_number>\d{6})$",
     #     array('api.tickets.php:TicketApiController','restDelete')),
