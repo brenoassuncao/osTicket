@@ -1,5 +1,0 @@
-{
-    "require": {
-        "cdaguerre/php-trello-api": "@dev"
-    }
-}

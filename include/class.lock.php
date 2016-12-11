@@ -150,6 +150,7 @@ class TicketLock {
     //Called  via cron
     function cleanup() {
         //Cleanup any expired locks.
+        db_query ( 'SET SQL_SAFE_UPDATES =""', 0 );
         db_query('DELETE FROM '.TICKET_LOCK_TABLE.' WHERE expire<NOW()');
     }
 }
