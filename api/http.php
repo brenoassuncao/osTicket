@@ -28,7 +28,7 @@ $dispatcher = patterns('',
     // RESTful
     url_get("^/tickets$", array('api.tickets.php:TicketApiController','restGetTickets')),
     url_get("^/tickets/(?P<ticket_number>\d{6})$",
-    #     array('api.tickets.php:TicketApiController','restGetTicket')),
+        array('api.tickets.php:TicketApiController','restGetTicket')),
     # Should stay disabled until there's an api key permission for ticket deletion
     #url_delete("^/tickets/(?P<ticket_number>\d{6})$",
     #     array('api.tickets.php:TicketApiController','restDelete')),
